@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vehicle Information Lookup</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vehicle Information Lookup</h1>
+
+    <h2>Save Vehicle Information</h2>
+    <form id="saveVehicleForm">
+        <label for="saveState">State:</label>
+        <input type="text" id="saveState" name="state" required><br><br>
+        <label for="savePlate">Plate:</label>
+        <input type="text" id="savePlate" name="plate" required><br><br>
+        <button type="button" onclick="submitData()">Submit</button>
+    </form>
+
+    <h2>Get Vehicle Information</h2>
+    <form id="getVehicleForm">
+        <label for="getState">State:</label>
+        <input type="text" id="getState" name="state" required><br><br>
+        <label for="getPlate">Plate:</label>
+        <input type="text" id="getPlate" name="plate" required><br><br>
+        <button type="button" onclick="getData()">Get Data</button>
+    </form>
+
+    <h2>Vehicle Information</h2>
+    <div id="result">
+        <table id="resultTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th>State</th>
+                    <th>Plate</th>
+                    <th>VIN</th>
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                    <th>Trim</th>
+                    <th>Fuel</th>
+                    <th>Drive Type</th>
+                    <th>Style</th>
+                    <th>Engine</th>
+                    <th>Color</th>
+                    <th>Transmission</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function submitData() {
+            var state = document.getElementById("saveState").value;
+            var plate = document.getElementById("savePlate").value;
+
+            fetch('https://oh24yccjfd.execute-api.us-east-1.amazonaws.com/testing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    state: state,
+                    plate: plate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Parse the body content and display it
+                var bodyContent = JSON.parse(data.body);
+                document.getElementById("result").innerText = JSON.stringify(bodyContent, null, 4);
+            })
+            .catch(error => {
+                document.getElementById("result").innerText = 'Error: ' + error;
+            });
+        }
+
+        function getData() {
+            var state = document.getElementById("getState").value;
+            var plate = document.getElementById("getPlate").value;
+
+            fetch('https://tcibvwi12a.execute-api.us-east-1.amazonaws.com/testing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    plate: plate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById("result").innerText = data.error;
+                    document.getElementById("resultTable").style.display = "none";
+                } else {
+                    var vehicleData = JSON.parse(data.body); // Parse the JSON string
+
+                    var tableBody = document.querySelector("#resultTable tbody");
+                    tableBody.innerHTML = ""; // Clear previous data
+
+                    var row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${vehicleData.state || ''}</td>
+                        <td>${vehicleData.plate || ''}</td>
+                        <td>${vehicleData.vin || ''}</td>
+                        <td>${vehicleData.make || ''}</td>
+                        <td>${vehicleData.model || ''}</td>
+                        <td>${vehicleData.year || ''}</td>
+                        <td>${vehicleData.trim || ''}</td>
+                        <td>${vehicleData.fuel || ''}</td>
+                        <td>${vehicleData.driveType || ''}</td>
+                        <td>${vehicleData.style || ''}</td>
+                        <td>${vehicleData.engine || ''}</td>
+                        <td>${vehicleData.color ? vehicleData.color.name || '' : ''}</td>
+                        <td>${vehicleData.transmission || ''}</td>
+                    `;
+                    tableBody.appendChild(row);
+
+                    document.getElementById("resultTable").style.display = "table";
+                }
+            })
+            .catch(error => {
+                document.getElementById("result").innerText = 'Error: ' + error;
+                document.getElementById("resultTable").style.display = "none";
+            });
+        }
+    </script>
+</body>
+</html>
